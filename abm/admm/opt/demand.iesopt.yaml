@@ -1,0 +1,53 @@
+parameters:
+  T: null
+  demand: null
+
+config:
+  general:
+    version:
+      core: 2.6.1
+    performance:
+      logfile: false
+  optimization:
+    problem_type: PARAMETRIC+QP
+    snapshots:
+      count: <T>
+    solver:
+      name: gurobi
+      log: false
+      attributes:
+        Threads: 1
+  results:
+    enabled: false
+
+addons:
+  ADMMAgent:
+    register:
+      eom: {type: exchange, component: market_electricity, mode: demand}
+
+carriers:
+  electricity: {}
+
+components:
+  # --------------------------
+ 
+  node_electricity:
+    type: Node
+    carrier: electricity
+
+  # --------------------------
+  
+  market_electricity:
+    type: Profile
+    carrier: electricity
+    mode: create
+    node_to: node_electricity
+    cost: $(t)
+
+  # --------------------------
+
+  demand:
+    type: Profile
+    carrier: electricity
+    node_from: node_electricity
+    value: <demand>@data

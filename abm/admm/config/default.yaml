@@ -1,0 +1,65 @@
+periods:
+  n: 8
+  t: 84
+
+settings:
+  eom:
+    price_cap: 500.0
+  cm:
+    volume: 225.0
+
+iesopt:
+  config:
+    general.verbosity.core: warning
+    general.verbosity.solver: off
+  parameters:
+    prices:
+      ch4: 30.0
+      co2: 150.0
+    emission_factors:
+      ch4_co2: 0.202
+
+rho:
+  initial: 10.0
+
+agents:
+  thermal:
+    config: opt/thermal.iesopt.yaml
+    lifetime: 25
+    wacc: 0.07
+    parameters:
+      p_nom: 0.0
+      p_nom_invest: 100.0
+      efficiency: 0.4
+      fuelprice: prm.prices.ch4
+      co2price: prm.prices.co2
+      emission_factor_co2: prm.emission_factors.ch4_co2
+      capex: 700000.0
+      opex_fom: 17500.0
+      opex_vom: 0.0
+  wind:
+    config: opt/renewable.iesopt.yaml
+    lifetime: 30
+    wacc: 0.07
+    parameters:
+      p_nom: 15.0
+      p_nom_invest: 100.0
+      availability_factor: wind
+      capex: 1000000.0
+      opex_fom: 20000.0
+      opex_vom: 5.0
+  solar:
+    config: opt/renewable.iesopt.yaml
+    lifetime: 20
+    wacc: 0.07
+    parameters:
+      p_nom: 0.0
+      p_nom_invest: 50.0
+      availability_factor: solar
+      capex: 200000.0
+      opex_fom: 5000.0
+      opex_vom: 0.0
+  demand:
+    config: opt/demand.iesopt.yaml
+    parameters:
+      demand: demand
