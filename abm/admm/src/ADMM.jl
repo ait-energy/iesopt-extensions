@@ -77,7 +77,7 @@ function create_agents(settings::Dict, data::DataFrame; iesopt_config::Dict, ies
             prop["config"];
             skip_validation=true,
             config=iesopt_config,
-            parameters=merge(Dict("T" => nrow(data)), param),
+            parameters=merge(Dict{String,Any}("T" => nrow(data)), param),
             virtual_files=Dict("data" => data),
         )
     end
