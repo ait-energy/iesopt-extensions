@@ -59,7 +59,7 @@ function print_iteration(admm, info; inner::Int64 = 10, outer::Int64 = 20)
             print(
                 round(maximum(abs.(info.E[eq])); digits=3), "     \t",
                 round(sqrt(sum(info.E[eq] .^ 2) / admm.periods.n); digits=3), "     \t",  # TODO: not sure with the rescaling here
-                round(sum(info.λ[eq]) / T * 8760.0; digits=3), "     \t",
+                round(sum(info.λ[eq]) ; digits=3), "     \t",
             )
         end
     end
