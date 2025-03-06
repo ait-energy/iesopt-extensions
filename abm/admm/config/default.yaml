@@ -67,17 +67,18 @@ agents:
       derating: 0.01
       tariff: 0.0
 
-  # storage:
-  #   config: opt/storage.iesopt.yaml
-  #   lifetime: 15
-  #   wacc: 0.07
-  #   parameters:
-  #     p_nom: 15.0
-  #     hours: 4.0
-  #     efficiency: 0.92
-  #     capex: 627122.0
-  #     opex_fom: 15678.0
-  #     opex_vom: 0.0
+  storage:
+    config: opt/storage.iesopt.yaml
+    lifetime: 15
+    wacc: 0.07
+    parameters:
+      p_nom: 15.0
+      hours: 4.0
+      efficiency: 0.92
+      capex: 627122.0
+      opex_fom: 15678.0
+      opex_vom: 0.0
+      derating: 0.40  # TODO: Check this value
 
   demand:
     config: opt/demand.iesopt.yaml
