@@ -13,7 +13,7 @@ include("src/ADMM.jl")
 
 # TODO: load proper data from a file
 seed!(42)
-T = 1 * 168  # = 4 * 168
+T = 4 * 168
 data = DataFrame(Dict("demand" => 35.0 .+ 65.0 .* rand(T), "wind" => rand(T), "solar" => rand(T) .* rand(T)))
 
 admm = ADMM.setup("config/default.yaml", data)
