@@ -1,0 +1,89 @@
+parameters:
+  T: null
+  p_nom: 0
+  hours: 0
+  efficiency: null
+  capex: 0
+  opex_fom: 0
+  opex_vom: 0
+
+  
+
+config:
+  general:
+    version:
+      core: 2.6.1
+    performance:
+      logfile: false
+  optimization:
+    problem_type: PARAMETRIC+QP
+    snapshots:
+      count: <T>
+    solver:
+      name: gurobi
+      log: false
+      attributes:
+        Threads: 1
+  results:
+    enabled: false
+
+addons:
+  ADMMAgent:
+    register:
+      eom: {type: exchange, component: market_electricity, mode: supply}
+      cm: {type: exchange, component: invest, mode: supply}
+    internal_linking: [invest]
+
+carriers:
+  electricity: {}
+
+components:
+  # --------------------------
+
+  storage:
+    type: Node
+    carrier: electricity
+    has_state: true
+    state_lb: 0
+    state_ub: (<p_nom> * <hours>)
+  
+  node_electricity:
+    type: Node
+    carrier: electricity
+  
+
+  # --------------------------
+  
+  market_electricity:
+    type: Profile
+    carrier: electricity
+    mode: ranged
+    node_from: node_electricity
+    cost: $(t)
+
+  # --------------------------
+
+  invest:
+    type: Decision
+    lb: 0
+    cost: $((<capex> + <opex_fom>) / 8760.0 * <T>)
+  
+  # --------------------------
+  charge:
+    type: Unit
+    inputs: {electricity: node_electricity}
+    outputs: {electricity: storage}
+    conversion: 1 electricity -> <efficiency> electricity
+    capacity: (<p_nom> + invest:value) in:electricity
+    marginal_cost: <opex_vom> per out:electricity
+    objectives: {total_cost: 0.0 + (<p_nom> * <opex_fom>) / 8760.0 *<T>}
+
+
+  discharge:
+    type: Unit
+    inputs: {electricity: storage}
+    outputs: {electricity: node_electricity}
+    conversion: 1 electricity -> <efficiency> electricity
+    capacity: (<p_nom> + invest:value) out:electricity
+    marginal_cost: <opex_vom> per out:electricity
+    #objectives: {total_cost: 0}  # TODO: fix that passing an "integer" here fails (src/utils/general.jl:533) due to missing "convert" to Float64
