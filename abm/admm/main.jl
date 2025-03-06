@@ -6,6 +6,13 @@ using Random: seed!
 # - `"julia.NumThreads": 16` in `settings.json`, or `-threads=16`, or ... (with any number of course)
 # - `Threads.nthreads()` to check the number of threads
 
+# TODO: we currently have `n` times the λ (and E) of static exchange equations like the CM
+#       this should converge as soon as the link converges, but... it might slow down the convergence, and will resulting
+#       in slightly different λs along the way for the different periods (which is not realistic)
+#       => refactor this to be summed up into one large exchange equation?
+#       => or properly check for this
+
+# TODO: the λ in CM depends on the total amount of timesteps, properly scale it for any analysis!
 
 cd(@__DIR__)
 
