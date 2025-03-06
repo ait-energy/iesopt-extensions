@@ -111,20 +111,19 @@ function solve!(admm; threaded::Bool = false)
     return status_codes
 end
 
-function update_equations!(admm, cb)
+function update_equations!(admm; cb_agg, cb_update)
     rlock = Threads.ReentrantLock()
 
     # Calculate E and λ for all agent models.
     ti = [(period, eq) for period in 1:admm.periods.n for eq in keys(admm.equations)]
     Threads.@threads for (period, eq) in ti
         slice = admm.agents.models[period]
-        sol = [
-            agent.ext[:admm][:exchange][eq][:sign] * agent.ext[:admm][:results][:exchange][eq] for
-            agent in values(slice) if haskey(agent.ext[:admm][:exchange], eq)
-        ]
-        Δ = sum(sol)
+        sol = Dict(
+            agent_id => (agent.ext[:admm][:exchange][eq][:sign] * agent.ext[:admm][:results][:exchange][eq]) for
+            (agent_id, agent) in slice if haskey(agent.ext[:admm][:exchange], eq)
+        )
 
-        ret = cb(eq, admm.λ[eq][period], Δ, length(sol))
+        ret = cb_agg(eq, admm.λ[eq][period], sol)
         Threads.lock(rlock) do
             # TODO: does that actually need a lock?
             admm.E[eq][period], admm.λ[eq][period] = ret
@@ -154,10 +153,13 @@ function update_equations!(admm, cb)
     ti = [(period, id) for period in 1:admm.periods.n for id in admm.agents.ids]
     Threads.@threads for (period, id) in ti
         agent = admm.agents.models[period][id]
-        agent.ext[:admm][:update][:parameter](
-            Dict(eq => admm.λ[eq][period] for eq in keys(admm.equations)),
-            Dict(eq => admm.E[eq][period] for eq in keys(admm.equations)),
-        )
+
+        dλ, dE = Dict(), Dict()
+        for eq in keys(admm.equations)
+            dλ[eq], dE[eq] = cb_update(eq, id, admm.λ[eq][period], admm.E[eq][period])
+        end
+        agent.ext[:admm][:update][:parameter](dλ, dE)
+
         agent.ext[:admm][:update][:links](z_links[id])
     end
 
