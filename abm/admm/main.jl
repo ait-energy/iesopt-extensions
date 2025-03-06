@@ -1,11 +1,11 @@
 using DataFrames: DataFrame
 import YAML
 using Random: seed!
+
 # NOTEs:
 # - `"julia.NumThreads": 16` in `settings.json`, or `-threads=16`, or ... (with any number of course)
 # - `Threads.nthreads()` to check the number of threads
 
-# TODO: Add derating factors in the agent config (populate it from "default.yaml"), and use them in the addon
 
 cd(@__DIR__)
 
@@ -21,9 +21,7 @@ ADMM.update_ρ!(admm)
 
 # ---- callbacks for the in-iteration updates
 
-function cb_agg(eq, λ_prev, sol)
-    # derating = Dict(:thermal => 0.94, :wind => 0.32, :solar => 0.01, :storage => 0.6)  # TODO: from config
-    derating = Dict(:thermal => 1, :wind => 0.32, :solar => 0.01, :storage => 1)
+function cb_agg(eq, agents, λ_prev, sol)
     # Number of agents bidding into this "equation".
     n = length(sol)
 
@@ -32,7 +30,7 @@ function cb_agg(eq, λ_prev, sol)
         Δ = sum(values(sol))
     elseif eq == :cm
         # Adjust "market offerings" based on derating factors.
-        Δ = sum(s * get(derating, agent, 1.0) for (agent, s) in sol)
+        Δ = sum(s * get(agents[agent].ext[:admm][:exchange][:cm][:config], "derating", 1.0) for (agent, s) in sol)
 
         # Exogenous demand, subtracting from supply.
         Δ -= admm.cfg.cm.volume
@@ -48,7 +46,7 @@ function cb_agg(eq, λ_prev, sol)
         λ = min.(admm.cfg.eom.price_cap, λ)
     elseif eq == :cm
         # Oversupply is fine, but should not be requested.
-        # E = min(0.0, E)
+        E = min(0.0, E)
 
         # Prices can not be negative.
         λ = max(0.0, λ)
@@ -57,20 +55,13 @@ function cb_agg(eq, λ_prev, sol)
     return (E, λ)
 end
 
-function cb_update(eq::Symbol, agent::Symbol, λ, E)
-    if eq == :cm
-        # derating = Dict(:thermal => 0.94, :wind => 0.32, :solar => 0.01, :storage => 0.6)  # TODO: from config
-        derating = Dict(:thermal => 1, :wind => 0.32, :solar => 0.01, :storage =>1)
-        if haskey(derating, agent)
-            λ *= derating[agent]
-            E /= derating[agent]
-        end
-    elseif eq == :eom
-        res_feedin_tariff = Dict(:wind => 0.0, :solar => 0.0)  # TODO: from config
-
-        if haskey(res_feedin_tariff, agent)
-            λ = λ .+ res_feedin_tariff[agent]
-        end
+function cb_update(eq, agent, λ, E)
+    if eq.name == :cm
+        # Factor derating into the price (since it is `λ ⋅ x` internall this makes it `(δ⋅λ) ⋅ x`).
+        λ *= get(eq.prop[:config], "derating", 1.0)
+    elseif eq.name == :eom
+        # Add a tariff to the price (convention is `tariff > 0` => "agent gets money", and vice versa).
+        λ = λ .+ get(eq.prop[:config], "tariff", 0.0)
     end
 
     return λ, E

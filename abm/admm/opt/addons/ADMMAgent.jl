@@ -156,12 +156,12 @@ function _update_objective(model::JuMP.Model)
 end
 
 function _register_exchange(model, data)
-    ret = Dict()
+    ret = Dict{Symbol, Any}(:config => data)
+    
     component = get_component(model, data["component"])
     T = get_T(model)
+    
     if component isa Profile
-        
-
         ret[:λ] = access(component.cost)
         ret[:λ_offset] = query(component.cost)
         ret[:x] = component.exp.value
@@ -185,7 +185,7 @@ function _register_exchange(model, data)
         @assert get(data, "mode", "missing") in ["supply", "demand"]
         ret[:sign] = data["mode"] == "supply" ? 1.0 : -1.0
 
-        push!(model.ext[:admm][:obj_terms], length(T) / 8760 * (ret[:E] - (ret[:x] - ret[:x_last]))^2)
+        push!(model.ext[:admm][:obj_terms], length(T) / 8760 * (ret[:E] - get(data, "derating", 1.0) * (ret[:x] - ret[:x_last]))^2)
     else
         @critical "[IESoptAddon_ADMM] Component type not supported"
     end

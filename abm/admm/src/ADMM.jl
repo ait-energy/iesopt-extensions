@@ -123,7 +123,7 @@ function update_equations!(admm; cb_agg, cb_update)
             (agent_id, agent) in slice if haskey(agent.ext[:admm][:exchange], eq)
         )
 
-        ret = cb_agg(eq, admm.λ[eq][period], sol)
+        ret = cb_agg(eq, slice, admm.λ[eq][period], sol)
         Threads.lock(rlock) do
             # TODO: does that actually need a lock?
             admm.E[eq][period], admm.λ[eq][period] = ret
@@ -155,8 +155,8 @@ function update_equations!(admm; cb_agg, cb_update)
         agent = admm.agents.models[period][id]
 
         dλ, dE = Dict(), Dict()
-        for eq in keys(admm.equations)
-            dλ[eq], dE[eq] = cb_update(eq, id, admm.λ[eq][period], admm.E[eq][period])
+        for (e, eq) in agent.ext[:admm][:exchange]
+            dλ[e], dE[e] = cb_update((name = e, prop = eq), (name = id, model = agent), admm.λ[e][period], admm.E[e][period])
         end
         agent.ext[:admm][:update][:parameter](dλ, dE)
 
