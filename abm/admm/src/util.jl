@@ -35,16 +35,18 @@ function print_iteration(admm, info; inner::Int64 = 10, outer::Int64 = 20)
     (info.iteration % inner == 1) || return nothing
 
     if info.iteration % (inner * outer) == 1
-        println("\n" * "-" ^ 95)
-        println(join(string.(keys(admm.equations)), "           \t"^3))
+        println("\n" * "-" ^ 150)
+        println(join(string.(keys(admm.equations)), "           \t"^5))
         for eq in keys(admm.equations)
             print(
                 "E (max)  ", "\t",
                 "E (rmse) ", "\t",
                 "λ (avg)  ", "\t",
+                "λ (max)  ", "\t",
+                "λ (min)  ", "\t",
             )
         end
-        println("\n" * "-" ^ 95)
+        println("\n" * "-" ^ 150)
     end
 
     T = admm.periods.n * admm.periods.t
@@ -54,12 +56,16 @@ function print_iteration(admm, info; inner::Int64 = 10, outer::Int64 = 20)
                 round(maximum(abs.(info.E[eq])); digits=3), "     \t",
                 round(sqrt(sum(info.E[eq] .^ 2) / T); digits=3), "     \t",
                 round(sum(info.λ[eq]) / T; digits=3), "     \t",
+                round(maximum(info.λ[eq]); digits=3), "     \t",
+                round(minimum(info.λ[eq]); digits=3), "     \t",
             )
         else
             print(
                 round(maximum(abs.(info.E[eq])); digits=3), "     \t",
                 round(sqrt(sum(info.E[eq] .^ 2) / admm.periods.n); digits=3), "     \t",  # TODO: not sure with the rescaling here
-                round(sum(info.λ[eq]) ; digits=3), "     \t",
+                round(sum(info.λ[eq] * 8760 / T) / admm.periods.n; digits=3), "     \t",
+                round(maximum(info.λ[eq] * 8760 / T); digits=3), "     \t",
+                round(minimum(info.λ[eq] * 8760 / T); digits=3), "     \t",
             )
         end
     end
