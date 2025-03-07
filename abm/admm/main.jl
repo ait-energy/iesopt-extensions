@@ -1,4 +1,5 @@
 using DataFrames: DataFrame
+using CSV
 import YAML
 using Random: seed!
 
@@ -10,18 +11,34 @@ using Random: seed!
 #       this should converge as soon as the link converges, but... it might slow down the convergence, and will resulting
 #       in slightly different λs along the way for the different periods (which is not realistic)
 #       => refactor this to be summed up into one large exchange equation?
-#       => or properly check for this
+#       => or properly check for this -> done
 
-# TODO: the λ in CM depends on the total amount of timesteps, properly scale it for any analysis!
+# TODO: the λ in CM depends on the total amount of timesteps, properly scale it for any analysis! -> done
 
 cd(@__DIR__)
 
 include("src/ADMM.jl")
 
-# TODO: load proper data from a file
-seed!(42)
-T = 4 * 168
-data = DataFrame(Dict("demand" => 35.0 .+ 65.0 .* rand(T), "wind" => rand(T), "solar" => rand(T) .* rand(T)))
+
+# Read energy demand for 2040 for climate year 2009
+df_solar = CSV.read(
+    joinpath("input", "PECD_LFSolarPV_2040_AT00_edition_2023_2.csv"), DataFrame;
+    delim=",",
+    header=11,
+    select=["2009.0"],
+)
+df_wind = CSV.read(
+    joinpath("input", "PECD_Wind_Onshore_2040_AT00_edition_2023_2.csv"), DataFrame;
+    delim=",",
+    header=11,
+    select = ["2009.0"],
+)
+df_demand = vcat(CSV.read(joinpath("input", "Demand_EOM2040_2009.csv"), DataFrame; delim=","))
+
+
+T = (vcat(1:168, 2161:2328, 4345:4512, 6553:6720))
+data =
+    DataFrame(Dict("demand" => df_demand[T, "demand"], "wind" => df_wind[T, "2009.0"], "solar" => df_solar[T, "2009.0"]))
 
 admm = ADMM.setup("config/default.yaml", data)
 ADMM.update_ρ!(admm)
