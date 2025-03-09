@@ -18,8 +18,12 @@ using Random: seed!
 cd(@__DIR__)
 
 include("src/ADMM.jl")
+# ---- choose saving of results
+# Decide if and where to save the results
+saving = true # false for no saving
+filepath = "C:/Users/KrainerD/Desktop/dev/Output/abm4energy"
 
-
+# ---- load input data
 # Read energy demand for 2040 for climate year 2009
 df_solar = CSV.read(
     joinpath("input", "PECD_LFSolarPV_2040_AT00_edition_2023_2.csv"), DataFrame;
@@ -113,3 +117,36 @@ end
 
 println("Elapsed time: ", time() - t_start)
 # ---- iterate until here
+
+
+
+# ---- save the results
+function save_results(info:: Vector, admm, filepath:: String)
+    eom_csv = Dict{Symbol, Any}()
+    cm_csv = Dict{Symbol, Any}()
+    for eq in keys(admm.equations)
+        if eq == :eom
+            csv = eom_csv
+            csv[:price_avg] = sum(info[end].λ[eq]) / (admm.periods.n * admm.periods.t)
+        else
+            csv = cm_csv
+            csv[:price_sum] = sum(info[end].λ[eq] * 8760 / (admm.periods.n * admm.periods.t))
+        end
+        for (agent, value) in info[end].x[eq]
+            csv[agent] = value
+        end
+        csv[:E] = info[end].E[eq]
+        csv[:price] = info[end].λ[eq]
+        csv[:price_max] = maximum(info[end].λ[eq])
+        csv[:price_min] = minimum(info[end].λ[eq])
+        CSV.write(joinpath(
+            "C:/Users/KrainerD/Desktop/dev/Output/abm4energy", 
+                "$(eq)_volume_$(admm.cfg.cm.volume)price_cap_$(admm.cfg.eom.price_cap)_tax$(admm.cfg.eom.tax).csv",
+            ),
+            DataFrame(csv))
+    end
+end
+
+if saving == true
+    save_results(info, admm, filepath)
+end
