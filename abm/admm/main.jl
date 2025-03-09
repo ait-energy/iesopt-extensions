@@ -86,6 +86,12 @@ function cb_update(eq, agent, λ, E)
     elseif eq.name == :eom
         # Add a tariff to the price (convention is `tariff > 0` => "agent gets money", and vice versa).
         λ = λ .+ get(eq.prop[:config], "tariff", 0.0)
+        # Adds new Austrian Energiekrisenbeitrag
+        for i in eachindex(λ)
+            if λ[i] > get(eq.prop[:config], "tax", Inf)
+                λ[i] = get(eq.prop[:config], "tax", Inf) .+ 0.05 * (λ[i] .- get(eq.prop[:config], "tax", Inf))
+            end
+        end
     end
 
     return λ, E
@@ -95,7 +101,7 @@ end
 t_start = time()
 
 info = []
-for k in 1:2000
+for k in 1:3000
     status_codes = ADMM.solve!(admm; threaded=true)
     # TODO: actually check the status codes
 
