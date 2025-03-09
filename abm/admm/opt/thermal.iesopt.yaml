@@ -11,6 +11,7 @@ parameters:
   opex_vom: 0
   derating: 1.0
   tariff: 0.0
+  tax: .inf
 
 config:
   general:
@@ -33,7 +34,7 @@ config:
 addons:
   ADMMAgent:
     register:
-      eom: {type: exchange, component: market_electricity, mode: supply, tariff: <tariff>}
+      eom: {type: exchange, component: market_electricity, mode: supply, tariff: <tariff>, tax: <tax>}
       cm: {type: exchange, component: invest, mode: supply, derating: <derating>}
     internal_linking: [invest]
 

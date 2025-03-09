@@ -1,6 +1,6 @@
 periods:
-  n: 8
-  t: 84
+  n: 1 #8
+  t: 24 #84
 
 settings:
   eom:
@@ -38,6 +38,7 @@ agents:
       opex_fom: 29859 # 26900.0 * 1.11
       opex_vom: 4.551 # 4.1 * 1.11
       derating: 0.94
+      tax: 90.0
 
   wind:
     config: opt/renewable.iesopt.yaml
@@ -52,6 +53,7 @@ agents:
       opex_vom: 0.0
       derating: 0.07
       tariff: 0.0
+      tax: 90.0
 
   solar:
     config: opt/renewable.iesopt.yaml
@@ -66,6 +68,7 @@ agents:
       opex_vom: 0.0
       derating: 0.01
       tariff: 0.0
+      tax: 90.0
 
   storage:
     config: opt/storage.iesopt.yaml
