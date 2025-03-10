@@ -91,9 +91,16 @@ function cb_update(eq, agent, λ, E)
         # Add a tariff to the price (convention is `tariff > 0` => "agent gets money", and vice versa).
         λ = λ .+ get(eq.prop[:config], "tariff", 0.0)
         # Adds new Austrian Energiekrisenbeitrag
+        # Converts Inf input in YAML file to Julia Inf -> ToDo: there should be a more efficient way
+        @infiltrate
+        if get(eq.prop[:config], "tax", Inf) == "Inf"
+            tax = Inf
+        else
+            tax = get(eq.prop[:config], "tax", Inf)
+        end
         for i in eachindex(λ)
-            if λ[i] > get(eq.prop[:config], "tax", Inf)
-                λ[i] = get(eq.prop[:config], "tax", Inf) .+ 0.05 * (λ[i] .- get(eq.prop[:config], "tax", Inf))
+            if λ[i] > tax
+                λ[i] = tax .+ 0.05 * (λ[i] .- tax)
             end
         end
     end
@@ -141,7 +148,7 @@ function save_results(info:: Vector, admm, filepath:: String)
         csv[:price_min] = minimum(info[end].λ[eq])
         CSV.write(joinpath(
             "C:/Users/KrainerD/Desktop/dev/Output/abm4energy", 
-                "$(eq)_volume_$(admm.cfg.cm.volume)price_cap_$(admm.cfg.eom.price_cap)_tax$(admm.cfg.eom.tax).csv",
+                "$(eq)_volume_$(admm.cfg.cm.volume)_price_cap_$(admm.cfg.eom.price_cap)_tax_$(admm.cfg.eom.tax).csv",
             ),
             DataFrame(csv))
     end
