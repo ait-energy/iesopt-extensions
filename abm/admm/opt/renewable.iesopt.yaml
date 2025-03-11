@@ -71,4 +71,4 @@ components:
     capacity: (<p_nom> + invest:value) out:electricity
     marginal_cost: <opex_vom> per out:electricity
     availability_factor: <availability_factor>@data
-    objectives: {total_cost: 0.0 + <p_nom> * <opex_fom>}  # TODO: fix that passing an "integer" here fails (src/utils/general.jl:533) due to missing "convert" to Float64
+    objectives: {total_cost: 0.0 + (<p_nom> * <opex_fom>) / 8760.0 * <T>}  # TODO: fix that passing an "integer" here fails (src/utils/general.jl:533) due to missing "convert" to Float64
