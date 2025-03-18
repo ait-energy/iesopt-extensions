@@ -1,12 +1,13 @@
 periods:
-  n: 1 #8
-  t: 24 #84
+  n: 8 #8
+  t: 84 #84
 
 settings:
   eom:
     price_cap: .inf
+    tax: 90.0
   cm:
-    volume: 20000.0
+    volume: 0.0
 
 iesopt:
   config:
@@ -14,7 +15,7 @@ iesopt:
     general.verbosity.solver: off
   parameters:
     prices:
-      ch4: 32.4
+      ch4: 31.52 #32.4 TYNDP value changed to 2020 currency year
       co2: 150.0
     emission_factors:
       ch4_co2: 0.154944 #0.202
@@ -34,41 +35,71 @@ agents:
       fuelprice: prm.prices.ch4
       co2price: prm.prices.co2
       emission_factor_co2: prm.emission_factors.ch4_co2
-      capex: 904650  #815000.0 * 1.11
-      opex_fom: 29859 # 26900.0 * 1.11
-      opex_vom: 4.551 # 4.1 * 1.11
+      capex: 8666649  
+      opex_fom: 28604
+      opex_vom: 4.36 
       derating: 0.94
-      tax: 90.0
+      tax: .inf
 
-  wind:
+  wind_old:
     config: opt/renewable.iesopt.yaml
-    lifetime: 25
+    lifetime: 30
     wacc: 0.07
     parameters:
       p_nom: 9000.0
-      p_nom_invest: 6000.0
+      p_nom_invest: 0.0
       availability_factor: wind
-      capex: 990000.0
-      opex_fom: 1592.0
-      opex_vom: 0.0
+      capex: 1146644.0
+      opex_fom: 16663.0
+      opex_vom: 1.98
       derating: 0.07
       tariff: 0.0
       tax: 90.0
 
-  solar:
+  wind_new:
+    config: opt/renewable.iesopt.yaml
+    lifetime: 30
+    wacc: 0.07
+    parameters:
+      p_nom: 0.0
+      p_nom_invest: 23939.0
+      availability_factor: wind
+      capex: 1146644.0
+      opex_fom: 1592.0
+      opex_vom: 1.98
+      derating: 0.07
+      tariff: 0.0
+      tax: 100.0
+
+  solar_old:
     config: opt/renewable.iesopt.yaml
     lifetime: 25
     wacc: 0.07
     parameters:
       p_nom: 12000.257
-      p_nom_invest: 20000.0
+      p_nom_invest: 0.0
       availability_factor: solar
-      capex: 330000.0
-      opex_fom: 8100.0
+      capex: 320000.0
+      opex_fom: 9500.0
       opex_vom: 0.0
       derating: 0.01
       tariff: 0.0
       tax: 90.0
+
+  solar_new:
+    config: opt/renewable.iesopt.yaml
+    lifetime: 25
+    wacc: 0.07
+    parameters:
+      p_nom: 0.0
+      p_nom_invest: 40000.0
+      availability_factor: solar
+      capex: 320000.0
+      opex_fom: 9500.0
+      opex_vom: 0.0
+      derating: 0.01
+      tariff: 0.0
+      tax: 100.0
 
   storage:
     config: opt/storage.iesopt.yaml
@@ -76,12 +107,12 @@ agents:
     wacc: 0.07
     parameters:
       p_nom: 67.758
-      hours: 4.0
-      efficiency: 0.92
-      capex: 627122.0
+      hours: 2.0
+      efficiency: 0.975
+      capex: 837959.0
       opex_fom: 15678.0
-      opex_vom: 0.0
-      derating: 0.57  
+      opex_vom: 1.81
+      derating: 0.38 
 
   demand:
     config: opt/demand.iesopt.yaml
