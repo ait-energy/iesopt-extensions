@@ -35,7 +35,7 @@ agents:
       fuelprice: prm.prices.ch4
       co2price: prm.prices.co2
       emission_factor_co2: prm.emission_factors.ch4_co2
-      capex: 8666649  
+      capex: 866649  
       opex_fom: 28604
       opex_vom: 4.36 
       derating: 0.94
