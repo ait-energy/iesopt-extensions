@@ -147,7 +147,7 @@ function save_results(info:: Vector, admm, filepath:: String)
         csv[:price_max] = maximum(info[end].λ[eq])
         csv[:price_min] = minimum(info[end].λ[eq])
         CSV.write(joinpath(
-            "C:/Users/KrainerD/Desktop/dev/Output/abm4energy", 
+            filepath, 
                 "$(eq)_volume_$(admm.cfg.cm.volume)_price_cap_$(admm.cfg.eom.price_cap)_tax_$(admm.cfg.eom.tax).csv",
             ),
             DataFrame(csv))
